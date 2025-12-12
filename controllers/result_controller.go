@@ -97,12 +97,12 @@ func GetMatchResult(c *gin.Context) {
 		TopGoalScorers []struct {
 			PlayerName string `json:"player_name"`
 			TeamName   string `json:"team_name"`
-			GoalCount  int    `"json:"goal_count"`
+			GoalCount  int    `json:"goal_count"`
 		} `json:"top_goal_scorers"`
 		MatchDetails models.Match `json:"match_details"`
 	}
 
-	if err := config.DB.Preload("HomeTeam").Preload("AwayTeam").Preload("Result").Preload("Goals.Player").First(&output.MatchDetails, matchID).Error; err != nil {
+	if err := config.DB.Preload("HomeTeam").Preload("AwayTeam").Preload("HomeTeam.Players").Preload("AwayTeam.Players").Preload("Result").Preload("Goals.Player").First(&output.MatchDetails, matchID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "match not found"})
 		return
 	}

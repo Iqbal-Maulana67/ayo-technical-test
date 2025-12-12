@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Iqbal-Maulana67/ayo-technical-test/config"
 	"github.com/Iqbal-Maulana67/ayo-technical-test/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func ListMatches(c *gin.Context) {
@@ -17,11 +20,33 @@ func ListMatches(c *gin.Context) {
 
 func CreateMatch(c *gin.Context) {
 	var body struct {
-		MatchDate  string `json:"match_date"` // ISO datetime
-		HomeTeamID uint   `json:"home_team_id"`
-		AwayTeamID uint   `json:"away_team_id"`
+		MatchDate  string `json:"match_date" binding:"required"` // ISO datetime
+		HomeTeamID uint   `json:"home_team_id" binding:"required"`
+		AwayTeamID uint   `json:"away_team_id" binding:"required"`
 	}
+
+	var validationMessages = map[string]string{
+		"MatchDate.required":  "Match date is required",
+		"HomeTeamID.required": "Home Team ID is required",
+		"AwayTeamID.required": "Away Team ID is required",
+	}
+
 	if err := c.ShouldBindJSON(&body); err != nil {
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			messages := make(map[string]string)
+
+			for _, fe := range verr {
+				key := fe.Field() + "." + fe.Tag()
+				if msg, ok := validationMessages[key]; ok {
+					messages[strings.ToLower(fe.Field())] = msg
+				} else {
+					messages[strings.ToLower(fe.Field())] = fe.Error() // fallback
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"errors": messages})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -65,11 +90,33 @@ func UpdateMatch(c *gin.Context) {
 		return
 	}
 	var body struct {
-		MatchDate  string `json:"match_date"` // ISO datetime
-		HomeTeamID uint   `json:"home_team_id"`
-		AwayTeamID uint   `json:"away_team_id"`
+		MatchDate  string `json:"match_date" binding:"required"` // ISO datetime
+		HomeTeamID uint   `json:"home_team_id" binding:"required"`
+		AwayTeamID uint   `json:"away_team_id" binding:"required"`
 	}
+
+	var validationMessages = map[string]string{
+		"MatchDate.required":  "Match date is required",
+		"HomeTeamID.required": "Home Team ID is required",
+		"AwayTeamID.required": "Away Team ID is required",
+	}
+
 	if err := c.ShouldBindJSON(&body); err != nil {
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			messages := make(map[string]string)
+
+			for _, fe := range verr {
+				key := fe.Field() + "." + fe.Tag()
+				if msg, ok := validationMessages[key]; ok {
+					messages[strings.ToLower(fe.Field())] = msg
+				} else {
+					messages[strings.ToLower(fe.Field())] = fe.Error() // fallback
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"errors": messages})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

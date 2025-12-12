@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/Iqbal-Maulana67/ayo-technical-test/config"
 	"github.com/Iqbal-Maulana67/ayo-technical-test/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func ListPlayers(c *gin.Context) {
@@ -21,7 +24,32 @@ func ListPlayers(c *gin.Context) {
 
 func CreatePlayer(c *gin.Context) {
 	var body models.Player
+
+	var validationMessages = map[string]string{
+		"TeamID.required":       "Match date is required",
+		"Name.required":         "Name is required",
+		"Height.required":       "Height is required",
+		"Weight.required":       "Weight is required",
+		"Position.required":     "Position is required",
+		"JerseyNumber.required": "Jersey Number is required",
+	}
+
 	if err := c.ShouldBindJSON(&body); err != nil {
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			messages := make(map[string]string)
+
+			for _, fe := range verr {
+				key := fe.Field() + "." + fe.Tag()
+				if msg, ok := validationMessages[key]; ok {
+					messages[strings.ToLower(fe.Field())] = msg
+				} else {
+					messages[strings.ToLower(fe.Field())] = fe.Error() // fallback
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"errors": messages})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"message": "JSON format error", "error": err.Error()})
 		return
 	}
@@ -56,7 +84,33 @@ func UpdatePlayer(c *gin.Context) {
 		return
 	}
 	var body models.Player
+
+	var validationMessages = map[string]string{
+		"TeamID.required":       "Match date is required",
+		"Name.required":         "Name is required",
+		"Height.required":       "Height is required",
+		"Weight.required":       "Weight is required",
+		"Position.required":     "Position is required",
+		"JerseyNumber.required": "Jersey Number is required",
+	}
+
 	if err := c.ShouldBindJSON(&body); err != nil {
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			messages := make(map[string]string)
+
+			for _, fe := range verr {
+				key := fe.Field() + "." + fe.Tag()
+				if msg, ok := validationMessages[key]; ok {
+					messages[strings.ToLower(fe.Field())] = msg
+				} else {
+					messages[strings.ToLower(fe.Field())] = fe.Error() // fallback
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"errors": messages})
+			return
+		}
+
 		c.JSON(http.StatusBadRequest, gin.H{"message": "JSON format error", "error": err.Error()})
 		return
 	}

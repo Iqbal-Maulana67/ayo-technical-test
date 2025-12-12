@@ -1,14 +1,17 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Iqbal-Maulana67/ayo-technical-test/config"
 	"github.com/Iqbal-Maulana67/ayo-technical-test/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -24,16 +27,36 @@ func init() {
 	jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 }
 
-// ===============================
-// REGISTER ADMIN
-// ===============================
 func RegisterAdmin(c *gin.Context) {
 	var input struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+
+	var validationMessages = map[string]string{
+		"Email.required":    "Email is required",
+		"Email.email":       "Email format is invalid",
+		"Password.required": "Password is required",
+		"Password.min":      "Password must be at least 6 characters",
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			messages := make(map[string]string)
+
+			for _, fe := range verr {
+				key := fe.Field() + "." + fe.Tag()
+				if msg, ok := validationMessages[key]; ok {
+					messages[strings.ToLower(fe.Field())] = msg
+				} else {
+					messages[strings.ToLower(fe.Field())] = fe.Error() // fallback
+				}
+			}
+
+			c.JSON(http.StatusBadRequest, gin.H{"errors": messages})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -57,9 +80,6 @@ func RegisterAdmin(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "data successfully created", "data": admin})
 }
 
-// ===============================
-// LOGIN ADMIN
-// ===============================
 func LoginAdmin(c *gin.Context) {
 	var input struct {
 		Email    string `json:"email"`

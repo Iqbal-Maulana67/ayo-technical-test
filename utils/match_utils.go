@@ -39,12 +39,12 @@ func WinAccumulation(teamID uint) int {
 func TopGoalScorers(matchID uint) []struct {
 	PlayerName string `json:"player_name"`
 	TeamName   string `json:"team_name"`
-	GoalCount  int    `"json:"goal_count"`
+	GoalCount  int    `json:"goal_count"`
 } {
 	var results []struct {
 		PlayerName string `json:"player_name"`
 		TeamName   string `json:"team_name"`
-		GoalCount  int    `"json:"goal_count"`
+		GoalCount  int    `json:"goal_count"`
 	}
 
 	config.DB.Table("match_goals").Select("players.name as player_name, teams.name as team_name, COUNT(match_goals.id) as goal_count").
