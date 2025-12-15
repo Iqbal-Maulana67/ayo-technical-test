@@ -22,7 +22,7 @@ CREATE TABLE
     name VARCHAR(255) NOT NULL,
     height REAL,
     weight REAL,
-    position ENUM ('penjaga_gawan', 'bertahan', 'gelandang', 'penyerang') NOT NULL,
+    position VARCHAR(255) NOT NULL,
     jersey_number INT NOT NULL,
     created_at TIMESTAMP DEFAULT now (),
     updated_at TIMESTAMP DEFAULT now (),
